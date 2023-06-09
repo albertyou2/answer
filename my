@@ -1,0 +1,144 @@
+1 
+
+package main
+
+import (
+"encoding/json"
+"fmt"
+"io/ioutil"
+"net/http"
+"os"
+"sync"
+"time"
+)
+
+type Comment struct {
+Email string `json:"email"`
+}
+
+func main() {
+start := time.Now()
+workerCount := 5
+urls := make(chan string, 100)
+emails := make(chan string, 500)
+var wg sync.WaitGroup
+
+// 创建工作goroutines
+for i := 0; i < workerCount; i++ {
+wg.Add(1)
+go func() {
+defer wg.Done()
+for url := range urls {
+fetchEmails(url, emails)
+}
+}()
+}
+
+// 生成URLs
+for i := 1; i <= 100; i++ {
+url := fmt.Sprintf("https://jsonplaceholder.typicode.com/posts/%d/comments", i)
+urls <- url
+}
+close(urls)
+
+// 等待工作goroutines完成
+wg.Wait()
+close(emails)
+
+// 将结果写入文件
+file, err := os.Create("emails.txt")
+if err != nil {
+panic(err)
+}
+defer file.Close()
+
+for email := range emails {
+file.WriteString(email + "\n")
+}
+
+elapsed := time.Since(start)
+fmt.Printf("爬取完成，共耗时: %s\n", elapsed)
+}
+
+func fetchEmails(url string, emails chan<- string) {
+resp, err := http.Get(url)
+if err != nil {
+fmt.Println("请求失败:", err)
+return
+}
+defer resp.Body.Close()
+
+body, err := ioutil.ReadAll(resp.Body)
+if err != nil {
+fmt.Println("读取响应失败:", err)
+return
+}
+
+var comments []Comment
+err = json.Unmarshal(body, &comments)
+if err != nil {
+fmt.Println("解析JSON失败:", err)
+return
+}
+
+for _, comment := range comments {
+emails <- comment.Email
+}
+}
+
+
+
+
+
+
+
+
+
+2 
+
+首先，将protobuf格式保存为一个名为addressbook.proto的文件。然后，使用protoc编译器生成Python代码：
+protoc -I=. --python_out=. addressbook.proto
+
+这将生成一个名为addressbook_pb2.py的文件，其中包含Python代码。接下来，我们将使用这个文件来创建、序列化和反序列化数据。
+
+创建一个名为main.py的文件，然后添加以下代码：
+import addressbook_pb2
+
+def create_address_book():
+    address_book = addressbook_pb2.AddressBook()
+
+    person = address_book.people.add()
+    person.id = 1
+    person.name = "Alice"
+    person.email = "alice@example.com"
+
+    phone = person.phones.add()
+    phone.number = "555-1234"
+    phone.type = addressbook_pb2.Person.HOME
+
+    return address_book
+
+def write_address_book_to_file(address_book, file_path):
+    with open(file_path, "wb") as f:
+        f.write(address_book.SerializeToString())
+
+def read_address_book_from_file(file_path):
+    address_book = addressbook_pb2.AddressBook()
+
+    with open(file_path, "rb") as f:
+        address_book.ParseFromString(f.read())
+
+    return address_book
+
+if __name__ == "__main__":
+    address_book = create_address_book()
+    file_path = "addressbook.bin"
+
+    write_address_book_to_file(address_book, file_path)
+
+    read_address_book = read_address_book_from_file(file_path)
+    print(read_address_book)
+这个代码首先创建一个AddressBook实例，并向其中添加一个Person实例。
+然后，将AddressBook实例序列化为二进制格式并写入文件。
+最后，从文件中读取二进制数据并反序列化为AddressBook实例。
+运行main.py文件，将创建一个名为addressbook.bin的二进制文件，并在控制台上打印读取到的数据。
