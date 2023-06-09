@@ -96,12 +96,11 @@ emails <- comment.Email
 
 2 
 
-首先，将protobuf格式保存为一个名为addressbook.proto的文件。然后，使用protoc编译器生成Python代码：
+将protobuf格式保存为一个名为addressbook.proto的文件。然后，使用protoc编译器生成Python代码：
 protoc -I=. --python_out=. addressbook.proto
 
-这将生成一个名为addressbook_pb2.py的文件，其中包含Python代码。接下来，我们将使用这个文件来创建、序列化和反序列化数据。
-
 创建一个名为main.py的文件，然后添加以下代码：
+
 import addressbook_pb2
 
 def create_address_book():
@@ -138,7 +137,3 @@ if __name__ == "__main__":
 
     read_address_book = read_address_book_from_file(file_path)
     print(read_address_book)
-这个代码首先创建一个AddressBook实例，并向其中添加一个Person实例。
-然后，将AddressBook实例序列化为二进制格式并写入文件。
-最后，从文件中读取二进制数据并反序列化为AddressBook实例。
-运行main.py文件，将创建一个名为addressbook.bin的二进制文件，并在控制台上打印读取到的数据。
